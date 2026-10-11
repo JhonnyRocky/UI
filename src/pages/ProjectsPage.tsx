@@ -62,30 +62,40 @@ export function ProjectsPage() {
 
   return (
     <AppShell>
-      <div className="mb-8 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="mb-2 text-xs font-semibold uppercase text-primary">Test workspace</p>
-          <h1 className="truncate font-display text-3xl font-semibold text-foreground">Projects</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {projects.length} {projects.length === 1 ? "assistant" : "assistants"} under test
+          <div className="flex items-center gap-2">
+            <h1 className="truncate font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Projects</h1>
+            <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+              {projects.length}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+            AI assistants and agents configured for automated evaluation
           </p>
         </div>
         <NewProjectDialog />
       </div>
 
-      <div className="mb-6 grid gap-3 border-y border-border bg-card py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-        <label className="relative block min-w-0 sm:max-w-md">
+      <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+        <label className="relative block min-w-0 flex-1 sm:max-w-md">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input aria-label="Search projects" placeholder="Search projects" value={query} onChange={(event) => setQuery(event.target.value)} className="h-10 bg-background pl-9 shadow-none" />
+          <Input
+            aria-label="Search projects"
+            placeholder="Search projects by name or description..."
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            className="h-9 bg-background pl-9 text-xs shadow-none sm:text-sm"
+          />
         </label>
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex items-center gap-2">
           <label className="min-w-0 flex-1 sm:flex-none">
             <span className="sr-only">Sort projects</span>
             <FieldSelect
               value={sort}
               onChange={(v) => setSort(v as typeof sort)}
               ariaLabel="Sort projects"
-              className="sm:w-auto sm:min-w-44"
+              className="h-9 text-xs sm:w-auto sm:min-w-44"
               options={[
                 { value: "recent", label: "Recently created" },
                 { value: "name", label: "Project name" },
@@ -93,9 +103,25 @@ export function ProjectsPage() {
               ]}
             />
           </label>
-          <div className="flex shrink-0 rounded-md border bg-muted/50 p-1">
-            <Button variant={view === "grid" ? "secondary" : "ghost"} size="icon" className="size-8 shadow-none" aria-label="Grid view" onClick={() => setView("grid")}><Grid2X2 /></Button>
-            <Button variant={view === "list" ? "secondary" : "ghost"} size="icon" className="size-8 shadow-none" aria-label="List view" onClick={() => setView("list")}><List /></Button>
+          <div className="flex shrink-0 items-center rounded-lg border border-border bg-muted/40 p-0.5">
+            <Button
+              variant={view === "grid" ? "secondary" : "ghost"}
+              size="icon"
+              className="size-7 rounded-md shadow-none"
+              aria-label="Grid view"
+              onClick={() => setView("grid")}
+            >
+              <Grid2X2 className="size-3.5" />
+            </Button>
+            <Button
+              variant={view === "list" ? "secondary" : "ghost"}
+              size="icon"
+              className="size-7 rounded-md shadow-none"
+              aria-label="List view"
+              onClick={() => setView("list")}
+            >
+              <List className="size-3.5" />
+            </Button>
           </div>
         </div>
       </div>
@@ -178,37 +204,158 @@ function ProjectGrid({
   onDelete: (p: MockProject) => void;
 }) {
   const { go } = useNavigate();
+
+  if (view === "list") {
+    return (
+      <div className="space-y-2">
+        {projects.map((p) => (
+          <article
+            key={p.id}
+            className="group relative flex flex-col justify-between gap-3 rounded-xl border border-border bg-card p-3.5 transition-all duration-150 hover:border-primary/40 hover:shadow-xs sm:flex-row sm:items-center sm:gap-4"
+          >
+            <button
+              type="button"
+              onClick={() => go({ name: "project", projectId: p.id })}
+              className="absolute inset-0 z-0"
+              aria-label={p.name}
+            />
+            <div className="relative z-10 flex min-w-0 flex-1 items-center gap-3">
+              <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 font-display text-sm font-semibold text-primary">
+                {p.name.slice(0, 1).toUpperCase()}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="truncate font-display text-sm font-semibold text-foreground">{p.name}</h2>
+                  <span className="inline-flex shrink-0 items-center rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    {projectKindLabel(p)}
+                  </span>
+                </div>
+                {p.description && (
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">{p.description}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="relative z-10 flex items-center justify-between gap-4 border-t border-border/50 pt-2 sm:border-0 sm:pt-0">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="rounded-md bg-muted/60 px-2 py-0.5 font-medium tabular-nums">
+                  {p.scenario_count ?? 0} tests
+                </span>
+                <span className="rounded-md bg-muted/60 px-2 py-0.5 font-medium tabular-nums">
+                  {p.run_count ?? 0} runs
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <ScoreBadge score={p.score} />
+                <div className="flex items-center gap-0.5">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 text-muted-foreground hover:text-foreground"
+                    aria-label={`Edit ${p.name}`}
+                    onClick={(e) => { e.stopPropagation(); onEdit(p); }}
+                  >
+                    <Pencil className="size-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 text-muted-foreground hover:text-foreground"
+                    aria-label={`Duplicate ${p.name}`}
+                    onClick={(e) => { e.stopPropagation(); onDuplicate(p); }}
+                  >
+                    <Copy className="size-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 text-muted-foreground hover:text-destructive"
+                    aria-label={`Delete ${p.name}`}
+                    onClick={(e) => { e.stopPropagation(); onDelete(p); }}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className={view === "grid" ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3" : "grid gap-3"}>
+    <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {projects.map((p) => (
         <article
           key={p.id}
-          className={`group relative overflow-hidden rounded-lg border bg-card transition duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lift ${
-            view === "list" ? "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-5 p-4" : "flex min-h-56 flex-col p-5"
-          }`}
+          className="group relative flex flex-col justify-between rounded-xl border border-border bg-card p-4 transition-all duration-150 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-xs"
         >
-          <button type="button" onClick={() => go({ name: "project", projectId: p.id })} className="absolute inset-0" aria-label={p.name} />
-          <div className="flex min-w-0 items-start justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 font-display font-semibold text-primary">{p.name.slice(0, 1).toUpperCase()}</span>
-              <div className="min-w-0"><h2 className="truncate font-display font-semibold text-foreground">{p.name}</h2><p className="text-xs text-muted-foreground">{projectKindLabel(p)}</p></div>
+          <button
+            type="button"
+            onClick={() => go({ name: "project", projectId: p.id })}
+            className="absolute inset-0 z-0"
+            aria-label={p.name}
+          />
+          <div>
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 font-display text-sm font-semibold text-primary">
+                  {p.name.slice(0, 1).toUpperCase()}
+                </span>
+                <div className="min-w-0">
+                  <h2 className="truncate font-display text-sm font-semibold text-foreground">{p.name}</h2>
+                  <span className="inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    {projectKindLabel(p)}
+                  </span>
+                </div>
+              </div>
+              <div className="relative z-10 shrink-0">
+                <ScoreBadge score={p.score} />
+              </div>
             </div>
-            <ScoreBadge score={p.score} />
+
+            <p className="mt-3 line-clamp-2 min-h-8 text-xs leading-relaxed text-muted-foreground">
+              {p.description || "No description provided."}
+            </p>
           </div>
-          {view === "grid" && <p className="mt-4 line-clamp-2 min-h-10 text-sm leading-5 text-muted-foreground">{p.description || "No description added yet."}</p>}
-          <div className={`${view === "grid" ? "mt-auto border-t pt-4" : "mt-2"} flex items-center justify-between gap-3 text-xs text-muted-foreground`}>
-            <span className="flex items-center gap-3"><span>{p.scenario_count ?? 0} tests</span><span>{p.run_count ?? 0} runs</span></span>
-            <span className="relative z-10 inline-flex gap-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Edit ${p.name}`} onClick={() => onEdit(p)}>
-                <Pencil className="h-4 w-4" />
+
+          <div className="relative z-10 mt-4 flex items-center justify-between border-t border-border/60 pt-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5 text-[11px]">
+              <span className="font-medium tabular-nums text-foreground">{p.scenario_count ?? 0}</span> tests
+              <span className="text-border">•</span>
+              <span className="font-medium tabular-nums text-foreground">{p.run_count ?? 0}</span> runs
+            </div>
+            <div className="flex items-center gap-0.5">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 text-muted-foreground hover:text-foreground"
+                aria-label={`Edit ${p.name}`}
+                onClick={(e) => { e.stopPropagation(); onEdit(p); }}
+              >
+                <Pencil className="size-3.5" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Duplicate ${p.name}`} onClick={() => onDuplicate(p)}>
-                <Copy className="h-4 w-4" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 text-muted-foreground hover:text-foreground"
+                aria-label={`Duplicate ${p.name}`}
+                onClick={(e) => { e.stopPropagation(); onDuplicate(p); }}
+              >
+                <Copy className="size-3.5" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Delete ${p.name}`} onClick={() => onDelete(p)}>
-                <Trash2 className="h-4 w-4" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 text-muted-foreground hover:text-destructive"
+                aria-label={`Delete ${p.name}`}
+                onClick={(e) => { e.stopPropagation(); onDelete(p); }}
+              >
+                <Trash2 className="size-3.5" />
               </Button>
-            </span>
+            </div>
           </div>
         </article>
       ))}

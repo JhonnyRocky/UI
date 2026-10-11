@@ -11,6 +11,11 @@ import {
   RefreshCw,
   Square,
   User,
+  CheckCircle2,
+  AlertCircle,
+  Bot,
+  Sparkles,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -158,9 +163,9 @@ export function ResultsStep({
             )}
           </div>
           <div className="h-px bg-border lg:h-10 lg:w-px" aria-hidden />
-          <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-0.5">
+          <div className="flex min-w-0 flex-1 flex-wrap gap-2">
             {metricAggs.map((m) => (
-              <div key={m.metric_id} className="min-w-[8.5rem] shrink-0 rounded-lg border bg-card px-2.5 py-2">
+              <div key={m.metric_id} className="min-w-[9.5rem] flex-1 shrink-0 rounded-xl border border-border bg-card p-3 shadow-2xs">
                 <p className="flex items-center justify-between gap-2 text-xs font-medium"><span className="truncate">{m.name}</span><ScoreBadge score={m.mean} /></p>
                 <p className="mt-0.5 text-[10px] tabular-nums text-muted-foreground">{m.scored}/{m.total}</p>
               </div>
@@ -187,7 +192,7 @@ export function ResultsStep({
                 const note = failureNote(s);
                 return (
                   <tr key={s.scenario_id} className="group cursor-pointer border-b last:border-0 hover:bg-muted/40" onClick={() => setSelectedScenarioId(s.scenario_id)}>
-                    <td className="sticky left-0 z-[1] max-w-64 bg-card py-3 pl-3 pr-3 group-hover:bg-muted/40">
+                    <td className="sticky left-0 z-[1] min-w-64 max-w-md bg-card py-3 pl-3 pr-3 group-hover:bg-muted/40">
                       <div className="flex min-w-0 items-center gap-2 font-medium"><MessageSquare className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /><span className="truncate">{s.title}</span></div>
                       {note && <p className="mt-1 text-xs text-destructive">{note}</p>}
                       <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
@@ -259,30 +264,100 @@ function ScenarioDetailView({
     URL.revokeObjectURL(url);
   };
 
+  const endReasonLabel = conversation.end_reason ? conversation.end_reason.replace(/_/g, " ") : "completed";
+
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border bg-card/95 px-3 py-2 shadow-sm">
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="ghost" size="sm" className="h-8 shrink-0 px-2" onClick={onBack}><ArrowLeft className="mr-1 h-4 w-4" /><span className="hidden sm:inline">Results</span></Button>
-          <span className="flex min-w-0 items-center gap-2 text-sm font-medium">
-            <span className={cn("size-2 shrink-0 rounded-full", band(row.overall) === "red" ? "bg-destructive" : band(row.overall) === "green" ? "bg-success" : "bg-warning")} />
-            <span className="truncate">{row.title}</span>
-          </span>
-          <ScoreBadge score={row.overall} />
-          <StatusBadge status={row.status} />
-          <div className="ml-auto flex shrink-0 items-center gap-1">
-            <Button variant="outline" size="sm" className="hidden h-8 sm:inline-flex" disabled><RefreshCw className="mr-1 h-3.5 w-3.5" />Score again</Button>
-            <Button size="sm" className="h-8" disabled={!true}><Play className="mr-1 h-3.5 w-3.5" />Run again</Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={exportTrace} title="Download JSON"><Download className="h-3.5 w-3.5" /></Button>
+      {/* Top Header & Navigation Bar */}
+      <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3.5 shadow-xs">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 shrink-0 gap-1.5 px-2.5 text-xs text-muted-foreground hover:text-foreground"
+              onClick={onBack}
+            >
+              <ArrowLeft className="size-3.5" />
+              <span>Back to results</span>
+            </Button>
+            <div className="h-4 w-px bg-border hidden sm:block" />
+            <div className="flex min-w-0 items-center gap-2">
+              <span
+                className={cn(
+                  "size-2.5 shrink-0 rounded-full",
+                  band(row.overall) === "red"
+                    ? "bg-destructive ring-4 ring-destructive/20"
+                    : band(row.overall) === "green"
+                    ? "bg-success ring-4 ring-success/20"
+                    : "bg-warning ring-4 ring-warning/20"
+                )}
+              />
+              <h2 className="truncate font-display text-base font-semibold text-foreground sm:text-lg">
+                {row.title}
+              </h2>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <ScoreBadge score={row.overall} />
+            <StatusBadge status={row.status} />
+            <div className="ml-auto flex items-center gap-1.5 sm:ml-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={exportTrace}
+                title="Download JSON Trace"
+              >
+                <Download className="mr-1.5 size-3.5" />
+                <span className="hidden sm:inline">Export</span> JSON
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs hidden sm:inline-flex"
+                disabled
+              >
+                <RefreshCw className="mr-1.5 size-3.5" />
+                Score again
+              </Button>
+              <Button size="sm" className="h-8 text-xs">
+                <Play className="mr-1.5 size-3.5" />
+                Run again
+              </Button>
+            </div>
           </div>
         </div>
-        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
-          {row.persona && <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5"><User className="h-3 w-3" />{formatPersona(row.persona)}</span>}
-          {catalogRow?.category && <span className="rounded bg-muted px-1.5 py-0.5">{catalogRow.category}</span>}
-          <span className="rounded bg-muted px-1.5 py-0.5">{formatRunLabel(row.run_number, row.attempt)}</span>
+
+        {/* Metadata ribbon */}
+        <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-2.5 text-xs text-muted-foreground">
+          {row.persona && (
+            <span className="inline-flex items-center gap-1 rounded-md bg-muted/70 px-2 py-0.5 font-medium text-foreground">
+              <User className="size-3 text-muted-foreground" />
+              {formatPersona(row.persona)}
+            </span>
+          )}
+          {catalogRow?.category && (
+            <span className="rounded-md bg-muted/70 px-2 py-0.5 font-medium text-muted-foreground">
+              Category: <span className="text-foreground">{catalogRow.category}</span>
+            </span>
+          )}
+          <span className="rounded-md bg-muted/70 px-2 py-0.5 font-medium tabular-nums text-foreground">
+            {formatRunLabel(row.run_number, row.attempt)}
+          </span>
+          <span className="text-border">•</span>
+          <span className="tabular-nums">
+            {conversation.turns.length} turn{conversation.turns.length === 1 ? "" : "s"}
+          </span>
+          <span className="text-border">•</span>
+          <span className="capitalize">
+            Ended: <span className="text-foreground">{endReasonLabel}</span>
+          </span>
         </div>
       </div>
 
+      {/* Collapsible Test Scenario Spec */}
       <TestSpecSummary
         isSingleTurn={singleTurn}
         input={catalogRow?.input}
@@ -295,59 +370,155 @@ function ScenarioDetailView({
         defaultOpen
       />
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        <Section title="Conversation" hint={`${conversation.turns.length} turns · ended: ${conversation.end_reason.replace(/_/g, " ")}`}>
-          <div className="space-y-3">
-            {conversation.turns.map((t, i) => (
-              <div key={i} className={cn("flex", t.role === "user" ? "justify-end" : "justify-start")}>
-                <div className={cn("max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm", t.role === "user" ? "bg-bubble-user text-bubble-user-foreground" : "border bg-card")}>
-                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide opacity-70">{t.role === "user" ? "Simulated user" : "Agent"}</p>
-                  <p className="leading-relaxed">{t.text}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Section>
-
-        <Section
-          title={`Scores (${chips.length})`}
-          action={
-            <span className="flex items-center gap-1">
-              {(["all", "failed", "passed"] as const).map((f) => (
-                <Button key={f} type="button" variant={metricFilter === f ? "secondary" : "ghost"} size="sm" className="h-7 px-2 text-[11px] capitalize" onClick={() => setMetricFilter(f)}>{f === "all" ? "All" : f === "failed" ? `Failed (${failedChips.length})` : "Passed"}</Button>
-              ))}
+      {/* Main Workspace: 2-Column Full Screen Layout */}
+      <div className="grid gap-4 lg:grid-cols-12">
+        {/* Left: Conversation Trace */}
+        <div className="lg:col-span-7 space-y-3">
+          <div className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 shadow-xs">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="size-4 text-primary" />
+              <h3 className="font-display text-sm font-semibold text-foreground">Conversation Transcript</h3>
+            </div>
+            <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium tabular-nums text-muted-foreground">
+              {conversation.turns.length} turns
             </span>
-          }
-        >
-          <div className="space-y-2">
-            {visibleChips.map((ch: any) => (
-              <div key={ch.metric_id} className="rounded-lg border bg-card p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium">{ch.name}</p>
-                  <ScoreBadge score={ch.score} />
-                </div>
-                {ch.reason && <p className="mt-1.5 text-xs text-muted-foreground">{ch.reason}</p>}
-              </div>
-            ))}
-            {visibleChips.length === 0 && <p className="text-sm text-muted-foreground">No metrics in this filter.</p>}
           </div>
-          {(row.highlights?.length > 0 || row.action_items?.length > 0) && (
-            <div className="mt-4 space-y-3 border-t pt-3 text-xs">
-              {row.highlights?.length > 0 && (
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">What went well</p>
-                  <ul className="mt-1 list-disc space-y-1 pl-5 text-muted-foreground">{row.highlights.map((h: string, i: number) => <li key={i}>{h}</li>)}</ul>
+
+          <div className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-xs">
+            {conversation.turns.map((t, i) => {
+              const isUser = t.role === "user";
+              return (
+                <div key={i} className="flex flex-col gap-1.5">
+                  <div className={cn("flex items-center gap-2 px-1 text-xs", isUser ? "flex-row-reverse" : "flex-row")}>
+                    <span className={cn(
+                      "grid size-6 place-items-center rounded-full text-xs",
+                      isUser
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "bg-muted text-muted-foreground border border-border"
+                    )}>
+                      {isUser ? <User className="size-3" /> : <Bot className="size-3" />}
+                    </span>
+                    <span className="font-semibold text-foreground">
+                      {isUser ? "Simulated User" : "Agent Under Test"}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">Turn {i + 1}</span>
+                  </div>
+
+                  <div className={cn("flex", isUser ? "justify-end" : "justify-start")}>
+                    <div
+                      className={cn(
+                        "max-w-[90%] rounded-xl px-4 py-3 text-sm leading-relaxed",
+                        isUser
+                          ? "bg-primary/[0.06] dark:bg-primary/[0.12] border border-primary/20 text-foreground"
+                          : "bg-muted/40 dark:bg-card border border-border text-foreground shadow-2xs"
+                      )}
+                    >
+                      <p className="whitespace-pre-wrap">{t.text}</p>
+                    </div>
+                  </div>
                 </div>
-              )}
-              {row.action_items?.length > 0 && (
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Action items</p>
-                  <ul className="mt-1 list-disc space-y-1 pl-5 text-destructive">{row.action_items.map((h: string, i: number) => <li key={i}>{h}</li>)}</ul>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right: Evaluation & Diagnostic Breakdown */}
+        <div className="lg:col-span-5 space-y-3">
+          <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4 shadow-xs">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-sm font-semibold text-foreground">
+                Evaluation Metrics ({chips.length})
+              </h3>
+              <div className="flex items-center rounded-lg border border-border bg-muted/40 p-0.5">
+                {(["all", "passed", "failed"] as const).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setMetricFilter(f)}
+                    className={cn(
+                      "rounded-md px-2.5 py-1 text-xs font-medium capitalize transition-colors",
+                      metricFilter === f
+                        ? "bg-background text-foreground shadow-2xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {f === "all" ? `All (${chips.length})` : f === "passed" ? `Passed (${passedChips.length})` : `Failed (${failedChips.length})`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-2 space-y-2.5">
+              {visibleChips.map((ch: any) => {
+                const isFailed = band(ch.score) === "red";
+                return (
+                  <div
+                    key={ch.metric_id}
+                    className="flex flex-col gap-2 rounded-lg border border-border bg-background p-3 transition-colors hover:border-primary/30"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {isFailed ? (
+                          <AlertCircle className="size-4 shrink-0 text-destructive" />
+                        ) : (
+                          <CheckCircle2 className="size-4 shrink-0 text-success" />
+                        )}
+                        <span className="truncate text-xs font-semibold text-foreground sm:text-sm">
+                          {ch.name}
+                        </span>
+                      </div>
+                      <ScoreBadge score={ch.score} />
+                    </div>
+                    {ch.reason && (
+                      <p className="border-l-2 border-primary/30 pl-2.5 text-xs leading-relaxed text-muted-foreground">
+                        {ch.reason}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+
+              {visibleChips.length === 0 && (
+                <div className="rounded-lg border border-dashed py-8 text-center text-xs text-muted-foreground">
+                  No metrics in this view.
                 </div>
               )}
             </div>
-          )}
-        </Section>
+
+            {/* Diagnostic Strengths & Action Items */}
+            {(row.highlights?.length > 0 || row.action_items?.length > 0) && (
+              <div className="mt-4 space-y-3 border-t border-border pt-4">
+                {row.highlights?.length > 0 && (
+                  <div className="rounded-lg border border-success/30 bg-success/[0.04] p-3.5">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-success">
+                      <CheckCircle2 className="size-3.5" />
+                      <span>Strengths & Observed Positives</span>
+                    </div>
+                    <ul className="mt-2 space-y-1.5 pl-5 text-xs text-muted-foreground list-disc">
+                      {row.highlights.map((h: string, i: number) => (
+                        <li key={i} className="leading-relaxed">{h}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {row.action_items?.length > 0 && (
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/[0.04] p-3.5">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-destructive">
+                      <AlertCircle className="size-3.5" />
+                      <span>Action Items & Failure Diagnostics</span>
+                    </div>
+                    <ul className="mt-2 space-y-1.5 pl-5 text-xs text-muted-foreground list-disc">
+                      {row.action_items.map((h: string, i: number) => (
+                        <li key={i} className="leading-relaxed text-destructive/90">{h}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

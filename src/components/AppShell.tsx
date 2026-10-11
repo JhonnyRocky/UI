@@ -47,7 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         onToggle={() => setCollapsed((c) => !c)}
       />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 grid h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b bg-card/90 px-4 backdrop-blur-md sm:px-6">
+        <header className="sticky top-0 z-30 grid h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b bg-card/90 px-4 backdrop-blur-md sm:px-6 lg:px-8 xl:px-10">
           <Button
             type="button"
             variant="ghost"
@@ -75,7 +75,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Button>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-[90rem] flex-1 px-4 py-7 sm:px-6 lg:px-8 lg:py-9">{children}</main>
+        <main className="w-full flex-1 px-4 py-6 sm:px-6 lg:px-8 xl:px-10">{children}</main>
       </div>
     </div>
   );
